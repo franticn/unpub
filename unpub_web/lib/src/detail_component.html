@@ -1,5 +1,6 @@
 <main *ngIf="package != null">
   <div class="detail-header">
+    <img src="https://img.shields.io/static/v1?label=downloads&message={{ package.download }}&color=blue">
     <h2 class="title">{{ package.name }} {{ package.version }}</h2>
     <div class="metadata">
       Published <span>{{ package.createdAt | date: "mediumDate" }}</span>
@@ -35,7 +36,6 @@
               <th>Uploaded</th>
               <th class="documentation" width="60">Documentation</th>
               <th class="archive" width="60">Archive</th>
-              <th>Download Counts</th>
             </tr>
           </thead>
           <tbody>
@@ -62,7 +62,6 @@
                     alt="Download {{ package.name }} {{ item.version }} archive" />
                 </a>
               </td>
-              <td>{{ item.download }}</td>
             </tr>
           </tbody>
         </table>

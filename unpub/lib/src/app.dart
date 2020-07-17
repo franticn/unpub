@@ -438,6 +438,7 @@ class App {
 
     var data = WebapiDetailView(
       package.name,
+      package.download.toString(),
       packageVersion.version,
       packageVersion.pubspec['description'] ?? '',
       packageVersion.pubspec['homepage'] ?? '',

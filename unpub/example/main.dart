@@ -14,6 +14,6 @@ main(List<String> args) async {
     packageStore: packageStore,
   );
 
-  var server = await app.serve('0.0.0.0', 4000);
+  var server = await app.serve('0.0.0.0', 4001);
   print('Serving at http://${server.address.host}:${server.port}');
 }

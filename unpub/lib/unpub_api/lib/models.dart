@@ -45,6 +45,7 @@ class DetailViewVersion {
 @JsonSerializable()
 class WebapiDetailView {
   String name;
+  String download;
   String version;
   String description;
   String homepage;
@@ -59,6 +60,7 @@ class WebapiDetailView {
 
   WebapiDetailView(
       this.name,
+      this.download,
       this.version,
       this.description,
       this.homepage,

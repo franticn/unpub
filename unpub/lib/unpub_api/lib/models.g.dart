@@ -61,6 +61,7 @@ Map<String, dynamic> _$DetailViewVersionToJson(DetailViewVersion instance) =>
 WebapiDetailView _$WebapiDetailViewFromJson(Map<String, dynamic> json) {
   return WebapiDetailView(
     json['name'] as String,
+    json['download'] as String,
     json['version'] as String,
     json['description'] as String,
     json['homepage'] as String,
@@ -84,6 +85,7 @@ WebapiDetailView _$WebapiDetailViewFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$WebapiDetailViewToJson(WebapiDetailView instance) =>
     <String, dynamic>{
       'name': instance.name,
+      'download': instance.download,
       'version': instance.version,
       'description': instance.description,
       'homepage': instance.homepage,
