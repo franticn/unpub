@@ -13,9 +13,14 @@ class FileStore extends PackageStore {
 
   @override
   Future<void> upload(String package, String version, List<int> content) async {
-    var file = _getTarballFile(package, version);
-    await file.create(recursive: true);
-    await file.writeAsBytes(content);
+    try {
+      var file = _getTarballFile(package, version);
+      await file.create(recursive: true);
+      await file.writeAsBytes(content);
+    } catch (e) {
+      /// todo need fix error : Creation failed, path = '/path' (OS Error: Read-only file system, errno = 30)
+      print('error -> ' + e.toString());
+    }
   }
 
   @override

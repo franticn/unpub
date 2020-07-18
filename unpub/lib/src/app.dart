@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:meta/meta.dart';
@@ -27,6 +28,7 @@ class App {
   final String upstream;
   final String googleapisProxy;
   final String overrideUploaderEmail;
+  final String uploaderPassword;
   final Future<void> Function(
       Map<String, dynamic> pubspec, String uploaderEmail) uploadValidator;
 
@@ -36,6 +38,7 @@ class App {
     this.upstream = 'https://pub.dev',
     this.googleapisProxy,
     this.overrideUploaderEmail,
+    this.uploaderPassword,
     this.uploadValidator,
   });
 
@@ -65,7 +68,7 @@ class App {
   http.Client _googleapisClient;
 
   Future<String> _getUploaderEmail(shelf.Request req) async {
-    if (overrideUploaderEmail != null) return overrideUploaderEmail;
+//    if (overrideUploaderEmail != null) return overrideUploaderEmail;
 
     var authHeader = req.headers[HttpHeaders.authorizationHeader];
     if (authHeader == null) return null;
@@ -82,9 +85,35 @@ class App {
       }
     }
 
-    var info = await Oauth2Api(_googleapisClient).tokeninfo(accessToken: token);
+    /// todo 需要修改为涂鸦的验证页面
+//    var info = await Oauth2Api(_googleapisClient).tokeninfo(accessToken: token);
+    var info = await queryVerifyCode();
+    print('info -> ' + info.toString());
     if (info == null) return null;
-    return info.email;
+    return info.toString();
+  }
+
+  /// 获取企业微信的验证码
+  Future<BaseResponse<bool>> queryVerifyCode() async {
+    var client = HttpClient();
+
+    ///构建请求体
+    var request =
+        await client.getUrl(Uri.parse('http://a.daily.tuya-inc.cn/tbs.json'));
+
+
+    var response = await request.close();
+    var map = await readResponse(response);
+    var res = BaseResponse<bool>.fromJson(map);
+    return res;
+  }
+
+  ///将[response]转化为 Map<String, dynamic>
+  Future<Map<String, dynamic>> readResponse(HttpClientResponse response) async {
+    var str = await response.transform(utf8.decoder).join();
+    print('str -> ' + str.toString());
+    Map<String, dynamic> map = jsonDecode(str);
+    return map;
   }
 
   Future<HttpServer> serve([String host = '0.0.0.0', int port = 4000]) async {
@@ -276,11 +305,11 @@ class App {
         }
 
         // Check duplicated version
-        var duplicated = package.versions
-            .firstWhere((item) => version == item.version, orElse: () => null);
-        if (duplicated != null) {
-          throw 'version invalid: $name@$version already exists.';
-        }
+//        var duplicated = package.versions
+//            .firstWhere((item) => version == item.version, orElse: () => null);
+//        if (duplicated != null) {
+//          throw 'version invalid: $name@$version already exists.';
+//        }
       }
 
       // Upload package tarball to storage
@@ -312,6 +341,7 @@ class App {
           .resolve('/api/packages/versions/newUploadFinish')
           .toString());
     } catch (err) {
+      print('ERROR -> ' + err.toString());
       return shelf.Response.found(req.requestedUri
           .resolve('/api/packages/versions/newUploadFinish?error=$err'));
     }

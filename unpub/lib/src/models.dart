@@ -60,3 +60,47 @@ class UnpubPackage {
   factory UnpubPackage.fromJson(Map<String, dynamic> map) =>
       _$UnpubPackageFromJson(map);
 }
+
+///涂鸦的基础请求体
+class BaseResponse<T> {
+  ///返回体
+  T result;
+
+  ///时间戳
+  int t;
+
+  ///是否成功
+  bool success;
+
+  ///状态码
+  String status;
+
+  BaseResponse(this.result, this.t, this.success, this.status);
+
+  factory BaseResponse.fromJson(Map<String, dynamic> map) =>
+      _$BaseResponseFromJson(map);
+
+  @override
+  String toString() {
+    return 'BaseResponse{result: $result, t: $t, success: $success, status: $status}';
+  }
+}
+
+
+class QueryTuyaTokenResponse {
+    String derPublicKey;
+    String publicKey;
+    String token;
+    String exponent;
+
+    QueryTuyaTokenResponse(
+      this.derPublicKey, this.publicKey, this.token, this.exponent);
+
+    factory QueryTuyaTokenResponse.fromJson(Map<String, dynamic> map) =>
+        _$QueryTuyaTokenResponse(map);
+
+    @override
+  String toString() {
+    return 'QueryTuyaTokenResponse{derPublicKey: $derPublicKey, publicKey: $publicKey, token: $token, exponent: $exponent}';
+  }
+}

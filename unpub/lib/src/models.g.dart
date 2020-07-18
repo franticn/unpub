@@ -52,6 +52,24 @@ UnpubPackage _$UnpubPackageFromJson(Map<String, dynamic> json) {
   );
 }
 
+BaseResponse<T> _$BaseResponseFromJson<T>(Map<String, dynamic> json) {
+  return BaseResponse(
+    json['result'] as T,
+    json['t'] as int,
+    json['success'] as bool,
+    json['status'] as String,
+  );
+}
+
+QueryTuyaTokenResponse _$QueryTuyaTokenResponse(Map<String, dynamic> json) {
+  return QueryTuyaTokenResponse(
+    json['derPublicKey'] as String,
+    json['publicKey'] as String,
+    json['token'] as String,
+    json['exponent'] as String
+  );
+}
+
 Map<String, dynamic> _$UnpubPackageToJson(UnpubPackage instance) =>
     <String, dynamic>{
       'name': instance.name,

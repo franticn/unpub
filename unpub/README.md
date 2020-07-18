@@ -3,7 +3,7 @@
 [![pub](https://img.shields.io/pub/v/unpub.svg)](https://pub.dev/packages/unpub)
 [![test](https://github.com/bytedance/unpub/workflows/test/badge.svg)](https://github.com/bytedance/unpub/actions?query=workflow:test)
 
-Unpub is a self-hosted private Dart Pub server for Enterprise, with a simple web interface to search and view packages information.
+Unpub is a self-hosted private Dart Pub server for Tuya.Inc, with a simple web interface to search and view packages information.
 
 ## Screenshots
 
@@ -103,8 +103,11 @@ class MyAwesomePackageStore extends unpub.PackageStore {
 var app = unpub.App(
   metaStore: MyAwesomeMetaStore(),
   packageStore: MyAwesomePackageStore(),
-)
+);
 ```
+
+## DEBUG
+When your have modified your project, run `pre_publich.sh` and run `unpub#examle#main.dart`, then open website that show in your console;
 
 ## Badges
 
