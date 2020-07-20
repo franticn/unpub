@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html';
 import 'package:angular/angular.dart';
 import 'package:angular_router/angular_router.dart';
@@ -29,6 +30,7 @@ final NodeValidatorBuilder _htmlValidator = NodeValidatorBuilder.common()
 )
 class DetailComponent implements OnInit, OnActivate {
   final AppService appService;
+
   DetailComponent(this.appService);
 
   WebapiDetailView package;
@@ -60,7 +62,7 @@ class DetailComponent implements OnInit, OnActivate {
   void onActivate(_, RouterState current) async {
     final name = current.parameters['name'];
     final version = current.parameters['version'];
-
+    print('currentUrl -> ${current.toUrl()}');
     if (name != null) {
       packageName = name;
       packageVersion = version;
@@ -82,6 +84,10 @@ class DetailComponent implements OnInit, OnActivate {
 
   getListUrl(String name) {
     return RoutePaths.list.toUrl(parameters: {'name': name});
+  }
+
+  downloadRes(String name, [String version]) async {
+    await appService.downloadRes(name, version);
   }
 
   getDetailUrl(String name, [String version]) {

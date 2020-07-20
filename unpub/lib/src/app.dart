@@ -86,22 +86,28 @@ class App {
     }
 
     /// todo 需要修改为涂鸦的验证页面
-//    var info = await Oauth2Api(_googleapisClient).tokeninfo(accessToken: token);
-    var info = await queryVerifyCode();
-    print('info -> ' + info.toString());
+    var info = await Oauth2Api(_googleapisClient).tokeninfo(accessToken: token);
     if (info == null) return null;
     return info.toString();
   }
 
-  /// 获取企业微信的验证码
-  Future<BaseResponse<bool>> queryVerifyCode() async {
+  ///根据[emil]用户邮箱和[pwd]密码对用户信息进行鉴权
+  Future<Object> authUser(String email, String pwd) async {
     var client = HttpClient();
+    var queryVerifyCodeRes = await queryVerifyCode(client, email, pwd);
+    if (queryVerifyCodeRes.success) {
+      /// 继续请求其他信息
+    } else {
+      throw 'Error when query Wechat verify code, detail:->${queryVerifyCodeRes.status} ';
+    }
+  }
 
+  /// 获取企业微信的验证码
+  Future<BaseResponse<bool>> queryVerifyCode(
+      HttpClient client, String email, String pwd) async {
     ///构建请求体
     var request =
         await client.getUrl(Uri.parse('http://a.daily.tuya-inc.cn/tbs.json'));
-
-
     var response = await request.close();
     var map = await readResponse(response);
     var res = BaseResponse<bool>.fromJson(map);
@@ -111,12 +117,11 @@ class App {
   ///将[response]转化为 Map<String, dynamic>
   Future<Map<String, dynamic>> readResponse(HttpClientResponse response) async {
     var str = await response.transform(utf8.decoder).join();
-    print('str -> ' + str.toString());
     Map<String, dynamic> map = jsonDecode(str);
     return map;
   }
 
-  Future<HttpServer> serve([String host = '0.0.0.0', int port = 4000]) async {
+  Future<HttpServer> serve([String host = '0.0.0.0', int port = 4001]) async {
     var handler = const shelf.Pipeline()
         .addMiddleware(shelf.logRequests())
         .addHandler((req) async {
@@ -203,9 +208,10 @@ class App {
     return _okWithJson(_versionToJson(packageVersion, req.requestedUri));
   }
 
-  @Route.get('/packages/<name>/versions/<version>.tar.gz')
-  Future<shelf.Response> download(
-      shelf.Request req, String name, String version) async {
+  @Route
+      .get('/packages/<name>/versions/<version>/download/<downloadName>.tar.gz')
+  Future<shelf.Response> download(shelf.Request req, String name,
+      String version, String downloadName) async {
     var package = await metaStore.queryPackage(name);
     if (package == null) {
       return shelf.Response.found(Uri.parse(upstream)
@@ -222,7 +228,9 @@ class App {
     } else {
       return shelf.Response.ok(
         packageStore.download(name, version),
-        headers: {HttpHeaders.contentTypeHeader: ContentType.binary.mimeType},
+        headers: {
+          HttpHeaders.contentTypeHeader: ContentType.binary.mimeType,
+        },
       );
     }
   }
@@ -240,8 +248,6 @@ class App {
   @Route.post('/api/packages/versions/newUpload')
   Future<shelf.Response> upload(shelf.Request req) async {
     try {
-      var email = await _getUploaderEmail(req);
-
       var mediaType = MediaType.parse(req.headers['content-type']);
 
       var boundary = mediaType.parameters['boundary'];
@@ -259,12 +265,19 @@ class App {
       var tarBytes = GZipDecoder().decodeBytes(tarballBytes);
       var archive = TarDecoder().decodeBytes(tarBytes);
       ArchiveFile pubspecArchiveFile;
+      ArchiveFile pubConfigArchiveFile;
       ArchiveFile readmeFile;
       ArchiveFile changelogFile;
 
       for (var file in archive.files) {
         if (file.name == 'pubspec.yaml') {
           pubspecArchiveFile = file;
+          continue;
+        }
+
+        /// 获取pubConfig.yaml的配置参数 里面存储的是上传者的账号和密码
+        if (file.name == 'pubconfig.yaml') {
+          pubConfigArchiveFile = file;
           continue;
         }
         if (file.name.toLowerCase() == 'readme.md') {
@@ -281,8 +294,20 @@ class App {
         throw 'Did not find any pubspec.yaml file in upload. Aborting.';
       }
 
+//      if (pubConfigArchiveFile == null) {
+//        throw 'Did not find any pubConfig.yaml file in upload. Aborting.';
+//      }else {
+      /// 邮箱和认证默认走配置里面的
+//      var pubConfigYaml = utf8.decode(pubConfigArchiveFile.content);
+//      var pubConfig = loadYamlAsMap(pubConfigYaml);
+//      var email = pubConfig['tuyaEmail'];
+//      var pwd = pubConfig['tuyaPassword'];
+//      await authUser(email, pwd);
+//      }
+
       var pubspecYaml = utf8.decode(pubspecArchiveFile.content);
       var pubspec = loadYamlAsMap(pubspecYaml);
+      var email = pubspec['author'];
 
       if (uploadValidator != null) {
         await uploadValidator(pubspec, email);
@@ -300,17 +325,22 @@ class App {
         }
 
         // Check uploaders
-        if (!package.uploaders.contains(email)) {
-          throw '$email is not an uploader of $name';
-        }
+        /// 这个是为了校验packages里pubspec.yaml中的author是否和默认的一致
+        /// 由于我们需求不包含这个 所以去掉了
+//        if (!package.uploaders.contains(email)) {
+//          throw '$email is not an uploader of $name';
+//        }
 
         // Check duplicated version
+        // todo 校验版本号是否发生了更新 上线前需要去除
 //        var duplicated = package.versions
 //            .firstWhere((item) => version == item.version, orElse: () => null);
 //        if (duplicated != null) {
 //          throw 'version invalid: $name@$version already exists.';
 //        }
       }
+
+//
 
       // Upload package tarball to storage
       await packageStore.upload(name, version, tarballBytes);
@@ -481,7 +511,6 @@ class App {
       depMap.keys.toList(),
       getPackageTags(packageVersion.pubspec),
     );
-
     return _okWithJson({'data': data.toJson()});
   }
 

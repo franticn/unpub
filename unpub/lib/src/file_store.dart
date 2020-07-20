@@ -8,7 +8,8 @@ class FileStore extends PackageStore {
   FileStore(this.baseDir);
 
   File _getTarballFile(String package, String version) {
-    return File(path.join(baseDir, '$package-$version.tar.gz'));
+    var pathDir = path.join(baseDir, '$package-$version.tar.gz');
+    return File(pathDir);
   }
 
   @override

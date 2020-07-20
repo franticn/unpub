@@ -12,7 +12,7 @@ Router _$AppRouter(App service) {
   router.add(
       'GET', r'/api/packages/<name>/versions/<version>', service.getVersion);
   router.add(
-      'GET', r'/packages/<name>/versions/<version>.tar.gz', service.download);
+      'GET', r'/packages/<name>/versions/<version>/download/<downloadName>.tar.gz', service.download);
   router.add('GET', r'/api/packages/versions/new', service.getUploadUrl);
   router.add('POST', r'/api/packages/versions/newUpload', service.upload);
   router.add(

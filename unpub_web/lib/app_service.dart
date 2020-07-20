@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:html' as html;
 import 'package:http/http.dart' as http;
 import 'package:angular/core.dart';
 import 'package:unpub_web/constants.dart';
@@ -7,6 +8,7 @@ import 'package:unpub_api/models.dart';
 
 class PackageNotExistsException implements Exception {
   final String message;
+
   PackageNotExistsException(this.message);
 }
 
@@ -50,6 +52,33 @@ class AppService {
     var res = await _fetch(
         '/webapi/packages', {'size': size, 'page': page, 'sort': sort, 'q': q});
     return ListApi.fromJson(res);
+  }
+
+   _downloadRes(String name,String version) async {
+    var downloadName = name;
+    if (version != null) {
+      downloadName += '-$version';
+    }
+    var path = '/packages/$name/versions/$version/download/$downloadName.tar.gz';
+    var baseUrl = isProduction ? BaseUrl.releaseUrl : BaseUrl.devUrl;
+    var uri = Uri.parse(baseUrl).replace(
+      path: path
+    );
+    var res = await http.get(uri);
+    try {
+      var url = 'http://' + '$baseUrl$path';
+      print('URL - > $url');
+      var anchorElement = html.AnchorElement(href: url);
+      anchorElement.download = url.toString();
+      anchorElement.setAttribute('download', '$name-$version.tar.gz');
+      anchorElement.click();
+    } catch (e) {
+      print('ERROR -> $e');
+    }
+  }
+
+   downloadRes(String name, [String version]) async {
+    await _downloadRes(name,version);
   }
 
   Future<WebapiDetailView> fetchPackage(String name, String version) async {
