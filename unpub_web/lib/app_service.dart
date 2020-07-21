@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:html' as html;
-import 'package:http/http.dart' as http;
+
 import 'package:angular/core.dart';
-import 'package:unpub_web/constants.dart';
-import 'src/routes.dart';
+import 'package:http/http.dart' as http;
 import 'package:unpub_api/models.dart';
+import 'package:unpub_web/constants.dart';
+
+import 'src/routes.dart';
 
 class PackageNotExistsException implements Exception {
   final String message;
@@ -61,13 +63,10 @@ class AppService {
     }
     var path = '/packages/$name/versions/$version/download/$downloadName.tar.gz';
     var baseUrl = isProduction ? BaseUrl.releaseUrl : BaseUrl.devUrl;
-    var uri = Uri.parse(baseUrl).replace(
-      path: path
-    );
-    var res = await http.get(uri);
+
     try {
-      var url = 'http://' + '$baseUrl$path';
-      print('URL - > $url');
+      var url = '$baseUrl$path';
+      print('url -> $url');
       var anchorElement = html.AnchorElement(href: url);
       anchorElement.download = url.toString();
       anchorElement.setAttribute('download', '$name-$version.tar.gz');

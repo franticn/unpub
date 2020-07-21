@@ -43,7 +43,7 @@
                     <tr>
                         <th>Version</th>
                         <th>Uploaded</th>
-                        <th class="documentation" width="60">Documentation</th>
+<!--                        <th class="documentation" width="60">Documentation</th>-->
                         <th class="archive" width="60">Archive</th>
                     </tr>
                     </thead>
@@ -55,17 +55,17 @@
                                 }}</a></strong>
                         </td>
                         <td>{{ item.createdAt | date: "mediumDate" }}</td>
-                        <td class="documentation">
-                            <a href="/documentation/{{ package.name }}/{{ item.version }}/"
-                               rel="nofollow" title="Go to the documentation of {{ package.name }} {{
-                    item.version
-                  }}">
-                                <img src="https://pub.dev/static/img/ic_drive_document_black_24dp.svg"
-                                     alt="Go to the documentation of {{ package.name }} {{
-                      item.version
-                    }}"/>
-                            </a>
-                        </td>
+<!--                        <td class="documentation">-->
+<!--                            <a href="/documentation/{{ package.name }}/{{ item.version }}/"-->
+<!--                               rel="nofollow" title="Go to the documentation of {{ package.name }} {{-->
+<!--                    item.version-->
+<!--                  }}">-->
+<!--                                <img src="https://pub.dev/static/img/ic_drive_document_black_24dp.svg"-->
+<!--                                     alt="Go to the documentation of {{ package.name }} {{-->
+<!--                      item.version-->
+<!--                    }}"/>-->
+<!--                            </a>-->
+<!--                        </td>-->
                         <td class="archive">
                             <a (click)="downloadRes(package.name, item.version)"
                                title="Download {{ package.name }} {{ item.version }} archive">
