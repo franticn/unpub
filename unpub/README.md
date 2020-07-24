@@ -1,131 +1,87 @@
 # Unpub
 
-[![pub](https://img.shields.io/pub/v/unpub.svg)](https://pub.dev/packages/unpub)
-[![test](https://github.com/bytedance/unpub/workflows/test/badge.svg)](https://github.com/bytedance/unpub/actions?query=workflow:test)
+本项目fork修改自字节的[unpub](https://github.com/bytedance/unpub)，主要用于内部的packages的发布下载及仓库页面的展示；
 
-Unpub is a self-hosted private Dart Pub server for Tuya.Inc, with a simple web interface to search and view packages information.
+## 使用
 
-## Screenshots
+### 发布
 
-![Screenshot](https://raw.githubusercontent.com/bytedance/unpub/master/assets/screenshot.png)
+对于要发布的package的`pubspec.yaml`，需要填写以下相关信息
 
-## Usage via command line
-
-```sh
-pub global activate unpub
-unpub --database mongodb://localhost:27017/dart_pub # Replace this with production database uri
+```yaml
+# 名称
+name: tuya_test_flutter 
+# 描述
+description: A Flutter package for test private pub.dev.
+# 版本号
+version: 0.0.6
+# 作者的邮箱，这里强制要求是以@tuya.com结尾的企业邮箱
+author: xc.fang@tuya.com
+# 私有pub的地址
+publish_to: http://some-package-server.com:port
+# 项目的主页地址
+homepage: https://google.com
 ```
 
-Unpub use mongodb as meta information store and file system as package(tarball) store by default.
 
-Dart API is also available for further customization.
 
-## Usage via Dart API
+在需要发布的package根项目下,使用如下命令
 
-### Example
-
-```dart
-import 'package:unpub/unpub.dart' as unpub;
-
-main(List<String> args) async {
-  var basedir = '/path/to/basedir'; // Base directory to save pacakges
-  var db = 'mongodb://localhost:27017/dart_pub'; // MongoDB uri
-
-  var metaStore = unpub.MongoStore(db);
-  await metaStore.db.open();
-
-  var packageStore = unpub.FileStore(basedir);
-
-  var app = unpub.App(
-    metaStore: metaStore,
-    packageStore: packageStore,
-  );
-
-  var server = await app.serve('0.0.0.0', 4000);
-  print('Serving at http://${server.address.host}:${server.port}');
-}
+```bash
+ // http://pubHost:port替换为仓库地址
+ flutter packages pub publish --server=http://some-package-server.com:port   
 ```
 
-### Options
+需要注意如下要点：
 
-| Option                    | Description                                                                          | Default         |
-| ------------------------- | ------------------------------------------------------------------------------------ | --------------- |
-| `metaStore` (Required)    | Meta information store                                                               | -               |
-| `packageStore` (Required) | Package(tarball) store                                                               | -               |
-| `upstream`                | Upstream url                                                                         | https://pub.dev |
-| `googleapisProxy`         | Http(s) proxy to call googleapis (to get uploader email)                             | -               |
-| `overrideUploaderEmail`   | If specified, unpub will use this email as uploader instead of requesting googleapis | -               |
-| `uploadValidator`         | See [Package validator](#package-validator)                                          | -               |
+- 发布时会检测此目录下是否存在`pubspec.yaml`，所以需要到`pubspec.yaml`运行上述命令
+- 发布时后台会校验项目是否已`tuya_`前缀开头，作者字段（author）是否是以`@tuya.com`为结尾
 
-### Package validator
+### 依赖
 
-Naming conflicts is a common issue for private registry. A reasonable solution is to add prefix to reduce conflict probability.
+在要依赖此package的项目的`pubspec.yaml`中，添加如下代码进行依赖
 
-With `uploadValidator` you could check if uploaded package is valid.
-
-```dart
-var app = unpub.App(
-  // ...
-  uploadValidator: (Map<String, dynamic> pubspec, String uploaderEmail) {
-    // Only allow packages with some specified prefixes to be uploaded
-    var prefix = 'my_awesome_prefix_';
-    var name = pubspec['name'] as String;
-    if (!name.startsWith(prefix)) {
-      throw 'Package name should starts with $prefix';
-    }
-
-    // Also, you can check if uploader email is valid
-    if (!uploaderEmail.endsWith('@your-company.com')) {
-      throw 'Uploader email invalid';
-    }
-  }
-);
+```yaml
+dependencies:
+  tuya_test_flutter:
+    hosted:
+      name: tuya_test_flutter
+      url: http://some-package-server.com
+    version: ^1.0.0
 ```
 
-### Customize meta and package store
+然后使用如下命令进行拉取
 
-Unpub is designed to be extensible. It is quite easy to customize your own meta store and package store.
-
-```dart
-import 'package:unpub/unpub.dart' as unpub;
-
-class MyAwesomeMetaStore extends unpub.MetaStore {
-  // Implement methods of MetaStore abstract class
-  // ...
-}
-
-class MyAwesomePackageStore extends unpub.PackageStore {
-  // Implement methods of PackageStore abstract class
-  // ...
-}
-
-// Then use it
-var app = unpub.App(
-  metaStore: MyAwesomeMetaStore(),
-  packageStore: MyAwesomePackageStore(),
-);
+```bash
+flutter packages get
 ```
 
-## DEBUG
-When your have modified your project, run `pre_publich.sh` and run `unpub#examle#main.dart`, then open website that show in your console;
 
-## Badges
 
-| URL                                          | Badge                                                                                     |
-| -------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `/badge/v/{package_name}` | ![badge example](https://img.shields.io/static/v1?label=unpub&message=0.1.0&color=orange) ![badge example](https://img.shields.io/static/v1?label=unpub&message=1.0.0&color=blue) |
-| `/badge/d/{package_name}`                    | ![badge example](https://img.shields.io/static/v1?label=downloads&message=123&color=blue) |
+## 项目结构
 
-## Alternatives
+项目当中有2个子项目，其中**unpub**是服务端代码，数据存储用的是`Mongodb`，HTTP服务器框架使用的是`shelf`;
 
-- [pub-dev](https://github.com/dart-lang/pub-dev): Source code of [pub.dev](https://pub.dev), which should be deployed at Google Cloud Platform.
-- [pub_server](https://github.com/dart-lang/pub_server): An alpha version of pub server provided by Dart team.
+而**unpub_web**是基于[`AngularDart`](https://angulardart.dev/)的Web应用。
 
-## Credits
+对应的UML图如下所示
 
-- [pub-dev](https://github.com/dart-lang/pub-dev): Web page styles are mostly imported from https://pub.dev directly.
-- [shields](https://shields.io): Badges generation.
+![unpub](/Users/fxc/Desktop/unpub.jpg)
 
-## License
 
-MIT
+
+## 开发调试
+
+### 前端（unpub_web）
+
+当你对`unpub_web`这个模块的代码进行修改完毕之后，直接运行项目根目录下的`pre_publish.sh`然后在对应的控制台上输出的网址进行查看。
+
+### 服务端（unpub）
+
+当你对`unpub`这个模块的代码进行修改之后，需要运行此模块下面的`run_unpub.sh`或者手动运行以下命令
+
+```bash
+dart 项目根目录/unpub/example/main.dart
+```
+
+然后在对应的控制台上输出的网址进行查看。
